@@ -3,9 +3,9 @@ package com.tunde.GKwebhook.Public.domain.order.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderPaymentDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
-import com.tunde.GKwebhook.Public.domain.sentEmail.entity.MethodType;
+import com.tunde.GKwebhook.Public.domain.order.entity.MethodType;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
-import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
+import com.tunde.GKwebhook.Public.domain.order.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.sentEmail.service.SentEmailService;
 import com.tunde.GKwebhook.Public.domain.order.dto.OrderDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 public class OrderService {
 
-    private static Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private StoreProvider storeProvider;
@@ -33,14 +33,13 @@ public class OrderService {
     private SentEmailService sentEmailService;
 
     public OrderDTO findById(String id) throws JsonProcessingException {
-        OrderDTO order = this.storeProvider.findOrderById(id);
-        return order;
+        return this.storeProvider.findOrderById(id);
     }
 
     public SentEmailResponseDTO sendEmail(String id) throws Exception {
         var order = this.storeProvider.findOrderById(id);
         logger.info("Order found: " + order.numero());
-        var verifyOrderDTO = this.createVerifyOrderDTO(order);
+        var verifyOrderDTO = VerifyOrderDTO.fromOrderDTO(order);
         logger.info("DTO created");
         return this.sendValidationEmail(verifyOrderDTO);
     }
@@ -58,13 +57,13 @@ public class OrderService {
         try {
             logger.info("Calling mail sender provider");
             this.mailSenderProvider.sendEmail(order);
-            SentEmailDTO sentEmailDTO = this.createSentEmailDTO(order, false);
+            SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, false);
             logger.info("Email sent");
             sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
             logger.info("Email stored in DB: " + sentEmail.getId());
         } catch (Exception err) {
             logger.info("Error while sent email");
-            SentEmailDTO sentEmailDTO = this.createSentEmailDTO(order, true);
+            SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, true);
             sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
             logger.error("Error saved in DB: " + sentEmail.getId());
         }
@@ -83,34 +82,5 @@ public class OrderService {
             logger.error("Order not approved: "+ order.numero());
             throw new Exception("Esse pedido ainda não foi aprovado!");
         }
-    }
-
-    private SentEmailDTO createSentEmailDTO(VerifyOrderDTO dto, Boolean failed) {
-        SentEmailDTO sentEmailDTO = new SentEmailDTO(
-                dto.cliente().email(),
-                MethodType.webhook,
-                failed,
-                String.valueOf(dto.numero()
-                )
-        );
-
-        return sentEmailDTO;
-    }
-
-    private VerifyOrderDTO createVerifyOrderDTO(OrderDTO order) {
-        var verifyOrderPaymentDTO = new VerifyOrderPaymentDTO(
-                order.pagamentos().get(0).id(),
-                order.pagamentos().get(0).parcelamento().numero_parcelas(),
-                order.pagamentos().get(0).parcelamento().valor_parcela(),
-                order.pagamentos().get(0).valor(),
-                order.pagamentos().get(0).forma_pagamento()
-        );
-        return new VerifyOrderDTO(
-                order.cliente(),
-                order.itens(),
-                order.numero(),
-                order.situacao(),
-                List.of(verifyOrderPaymentDTO)
-        );
     }
 }

@@ -3,7 +3,7 @@ package com.tunde.GKwebhook.Public.domain.sentEmail.service;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.FindAllSentEmailResponseDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
-import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
+import com.tunde.GKwebhook.Public.domain.order.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.sentEmail.repository.SentEmailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,13 +28,9 @@ public class SentEmailService {
     public Boolean alreadySent(String email, String orderId) {
         Optional<SentEmail> sentEmail = this.repository.findByEmail(email);
         Optional<SentEmail> sentEmailByOrder = this.repository.findByOrderId(orderId);
-        if (
-                sentEmail.isPresent() &&
+        return sentEmail.isPresent() &&
                 !sentEmail.get().getFailed() ||
-                sentEmailByOrder.isPresent()
-        ) {
-            return true;
-        } else return false;
+                sentEmailByOrder.isPresent();
     }
 
     public FindAllSentEmailResponseDTO findAll() {
@@ -45,12 +41,10 @@ public class SentEmailService {
             responseArray.add(this.createSentEmailResponseDTO(email));
         }
 
-        FindAllSentEmailResponseDTO response = new FindAllSentEmailResponseDTO(
+        return new FindAllSentEmailResponseDTO(
                 responseArray,
                 responseArray.size()
         );
-
-        return response;
     }
 
     public SentEmailResponseDTO createSentEmailResponseDTO(SentEmail email) {

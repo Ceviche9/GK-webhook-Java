@@ -1,7 +1,6 @@
 package com.tunde.GKwebhook.Public.domain.sentEmail.dto;
 
-import com.tunde.GKwebhook.Public.domain.sentEmail.entity.MethodType;
-import lombok.NoArgsConstructor;
+import com.tunde.GKwebhook.Public.domain.order.entity.MethodType;
 
 public record SentEmailResponseDTO(
         String email,
