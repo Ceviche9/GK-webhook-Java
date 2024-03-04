@@ -1,4 +1,4 @@
-package com.tunde.GKwebhook.Public.infra;
+package com.tunde.GKwebhook.Public.infra.providers;
 
 import com.tunde.GKwebhook.Public.domain.order.dto.ProductDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
