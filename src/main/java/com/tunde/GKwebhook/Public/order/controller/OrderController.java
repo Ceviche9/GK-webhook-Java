@@ -1,6 +1,7 @@
 package com.tunde.GKwebhook.Public.order.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tunde.GKwebhook.Public.sentEmail.entity.SentEmail;
 import com.tunde.GKwebhook.Public.order.dto.OrderDTO;
 import com.tunde.GKwebhook.Public.order.dto.VerifyOrderDTO;
 import com.tunde.GKwebhook.Public.order.service.OrderService;
@@ -23,8 +24,8 @@ public class OrderController {
     }
 
     @PostMapping("/send-email")
-    ResponseEntity<Integer> sendEmail(@RequestBody VerifyOrderDTO dto) throws Exception {
-        int response = this.orderService.sendValidationEmail(dto);
+    ResponseEntity<SentEmail> sendEmail(@RequestBody VerifyOrderDTO dto) throws Exception {
+        SentEmail response = this.orderService.sendValidationEmail(dto);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

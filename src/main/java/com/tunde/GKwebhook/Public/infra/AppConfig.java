@@ -1,4 +1,4 @@
-package com.tunde.GKwebhook.Public.order.infra;
+package com.tunde.GKwebhook.Public.infra;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,14 +1,12 @@
-package com.tunde.GKwebhook.Public.order.infra;
+package com.tunde.GKwebhook.Public.infra;
 
 import com.tunde.GKwebhook.Public.order.dto.ProductDTO;
 import com.tunde.GKwebhook.Public.order.dto.VerifyOrderDTO;
 import org.apache.commons.mail.HtmlEmail;
-import org.apache.commons.mail.SimpleEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.mail.internet.MimeMessage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +33,9 @@ public class MailSenderProvider {
         String htmlBody = this.generateDocumentValidation(
                 order.numero(),
                 productNames,
-                order.pagamentos().get(0).valor().toString(),
-                order.pagamentos().get(0).numero_parcelas(),
                 order.pagamentos().get(0).valor(),
+                order.pagamentos().get(0).numero_parcelas(),
+                order.pagamentos().get(0).valor_parcela(),
                 order.cliente().nome()
                 );
 
