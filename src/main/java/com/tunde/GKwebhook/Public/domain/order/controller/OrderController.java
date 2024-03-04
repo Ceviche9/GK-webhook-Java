@@ -64,8 +64,10 @@ public class OrderController {
     private void authenticate(String authorizationHeader) throws Exception {
         if (authorizationHeader != null) {
             var token = authorizationHeader.replace("Bearer", "").trim();
-            if (!token.equals(this.env.getProperty("webhook.token"))) throw new Exception("Token is invalid!");
-            logger.error("Token is invalid: " + token);
+            if (!token.equals(this.env.getProperty("webhook.token"))) {
+                logger.error("Token is invalid: " + token);
+                throw new Exception("Token is invalid!");
+            };
             return;
         }
         logger.error("Token is missing!");
