@@ -1,7 +1,7 @@
 package com.tunde.GKwebhook.Public.infra;
 
-import com.tunde.GKwebhook.Public.order.dto.ProductDTO;
-import com.tunde.GKwebhook.Public.order.dto.VerifyOrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.dto.ProductDTO;
+import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
 import org.apache.commons.mail.HtmlEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

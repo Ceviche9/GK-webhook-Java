@@ -3,7 +3,7 @@ package com.tunde.GKwebhook.Public.infra;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tunde.GKwebhook.Public.order.dto.OrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.dto.OrderDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;

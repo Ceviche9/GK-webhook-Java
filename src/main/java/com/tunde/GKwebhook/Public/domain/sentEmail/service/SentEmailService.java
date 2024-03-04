@@ -1,13 +1,12 @@
-package com.tunde.GKwebhook.Public.sentEmail.service;
+package com.tunde.GKwebhook.Public.domain.sentEmail.service;
 
-import com.tunde.GKwebhook.Public.sentEmail.dto.SentEmailDTO;
-import com.tunde.GKwebhook.Public.sentEmail.entity.SentEmail;
-import com.tunde.GKwebhook.Public.sentEmail.repository.SentEmailRepository;
+import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
+import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
+import com.tunde.GKwebhook.Public.domain.sentEmail.repository.SentEmailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class SentEmailService {

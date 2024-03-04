@@ -1,4 +1,4 @@
-package com.tunde.GKwebhook.Public.sentEmail.dto;
+package com.tunde.GKwebhook.Public.domain.sentEmail.dto;
 
 public record SentEmailDTO(
         String email,

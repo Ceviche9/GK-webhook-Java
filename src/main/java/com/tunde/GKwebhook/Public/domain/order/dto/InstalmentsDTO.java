@@ -1,4 +1,4 @@
-package com.tunde.GKwebhook.Public.order.dto;
+package com.tunde.GKwebhook.Public.domain.order.dto;
 
 public record InstalmentsDTO(
         int numero_parcelas,

@@ -1,10 +1,10 @@
-package com.tunde.GKwebhook.Public.order.controller;
+package com.tunde.GKwebhook.Public.domain.order.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.tunde.GKwebhook.Public.sentEmail.entity.SentEmail;
-import com.tunde.GKwebhook.Public.order.dto.OrderDTO;
-import com.tunde.GKwebhook.Public.order.dto.VerifyOrderDTO;
-import com.tunde.GKwebhook.Public.order.service.OrderService;
+import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
+import com.tunde.GKwebhook.Public.domain.order.dto.OrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
-package com.tunde.GKwebhook.Public.sentEmail.entity;
+package com.tunde.GKwebhook.Public.domain.sentEmail.entity;
 
-import com.tunde.GKwebhook.Public.sentEmail.dto.MethodType;
-import com.tunde.GKwebhook.Public.sentEmail.dto.SentEmailDTO;
+import com.tunde.GKwebhook.Public.domain.sentEmail.dto.MethodType;
+import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
