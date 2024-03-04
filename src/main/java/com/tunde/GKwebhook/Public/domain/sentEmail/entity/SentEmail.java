@@ -1,6 +1,5 @@
 package com.tunde.GKwebhook.Public.domain.sentEmail.entity;
 
-import com.tunde.GKwebhook.Public.domain.sentEmail.dto.MethodType;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -26,7 +26,7 @@ public class SentEmail {
     private String email;
 
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime sended_at;
+    private ZonedDateTime sended_at;
 
     private Boolean failed = false;
 
@@ -41,6 +41,13 @@ public class SentEmail {
         this.failed = dto.failed();
         this.method = dto.method();
         this.order_id = dto.orderId();
+        this.setCurrentDate();
+    }
+
+    private void setCurrentDate() {
+        ZoneId zonaBrasilia = ZoneId.of("America/Sao_Paulo");
+        ZonedDateTime sendedAt = ZonedDateTime.now(zonaBrasilia);
+        this.sended_at = sendedAt;
     }
 
 }

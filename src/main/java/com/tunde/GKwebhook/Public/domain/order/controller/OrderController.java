@@ -1,11 +1,13 @@
 package com.tunde.GKwebhook.Public.domain.order.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.order.dto.OrderDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
 import com.tunde.GKwebhook.Public.domain.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,17 +17,47 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     private OrderService orderService;
 
     @GetMapping("/{orderId}")
-    ResponseEntity<OrderDTO> findById(@PathVariable("orderId") String id) throws JsonProcessingException {
+    ResponseEntity<OrderDTO> findById(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable("orderId") String id
+    ) throws Exception {
+        this.authenticate(authorizationHeader);
         OrderDTO response = this.orderService.findById(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/send-email")
-    ResponseEntity<SentEmail> sendEmail(@RequestBody VerifyOrderDTO dto) throws Exception {
-        SentEmail response = this.orderService.sendValidationEmail(dto);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    @PostMapping("/send-email/{orderId}")
+    ResponseEntity<SentEmailResponseDTO> sendEmail(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable("orderId") String id
+    ) throws Exception {
+        this.authenticate(authorizationHeader);
+        var response = this.orderService.sendEmail(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/webhook")
+    ResponseEntity<SentEmailResponseDTO> webhook(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody VerifyOrderDTO order
+    ) throws Exception {
+        this.authenticate(authorizationHeader);
+        var response = this.orderService.sendValidationEmail(order);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private void authenticate(String authorizationHeader) throws Exception {
+        if (authorizationHeader != null) {
+            var token = authorizationHeader.replace("Bearer", "").trim();
+            if (!token.equals(this.env.getProperty("webhook.token"))) throw new Exception("Token is invalid!");
+            return;
+        }
+        throw new Exception("Token is missing!");
     }
 }

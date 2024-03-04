@@ -19,7 +19,7 @@ public class MailSenderProvider {
     public void sendEmail(VerifyOrderDTO order) throws Exception {
         HtmlEmail email = new HtmlEmail();
         email.setCharset("UTF-8");
-        email.setHostName("smtp.gmail.com");
+        email.setHostName("email-ssl.com.br");
         email.setSmtpPort(465);
         email.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
         email.setSSLOnConnect(true);
@@ -43,7 +43,7 @@ public class MailSenderProvider {
             email.setFrom(this.env.getProperty("my.email"));
             email.setSubject("Verificação de Documentação PED: " + order.numero());
             email.setHtmlMsg(htmlBody);
-            email.addTo(this.env.getProperty("test.email"));
+            email.addTo("niinbus@gmail.com");
             email.send();
 
         } catch (Exception err) {
