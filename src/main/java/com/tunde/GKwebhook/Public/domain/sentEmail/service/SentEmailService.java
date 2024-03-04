@@ -25,9 +25,14 @@ public class SentEmailService {
         return this.repository.save(newSentEmail);
     }
 
-    public Boolean alreadySent(String email) {
+    public Boolean alreadySent(String email, String orderId) {
         Optional<SentEmail> sentEmail = this.repository.findByEmail(email);
-        if (sentEmail.isPresent() && !sentEmail.get().getFailed()) {
+        Optional<SentEmail> sentEmailByOrder = this.repository.findByOrderId(orderId);
+        if (
+                sentEmail.isPresent() &&
+                !sentEmail.get().getFailed() ||
+                sentEmailByOrder.isPresent()
+        ) {
             return true;
         } else return false;
     }
