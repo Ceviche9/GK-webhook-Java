@@ -43,9 +43,3 @@ This project is a Java-based API designed to integrate an anti-fraud system for 
 -   Set up authentication and authorization mechanisms to secure the API endpoints.
 -   Configure the SMTP server for sending emails.
 -   Customize email templates and content as per your requirements.
-
-## Contact
-
-For any inquiries or support, please contact projectmaintainer@example.com.
-
-Thank you for using the Anti-Fraud System API for E-commerce Platform!
