@@ -30,9 +30,10 @@ public class OrderController {
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("orderId") String id
     ) throws Exception {
+        logger.info("Request Started.");
         this.authenticate(authorizationHeader);
         OrderDTO response = this.orderService.findById(id);
-        logger.info("resposta obtida");
+        logger.info("Sending response.");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -41,8 +42,10 @@ public class OrderController {
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("orderId") String id
     ) throws Exception {
+        logger.info("Request Started.");
         this.authenticate(authorizationHeader);
         var response = this.orderService.sendEmail(id);
+        logger.info("Sending response.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -51,20 +54,21 @@ public class OrderController {
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody VerifyOrderDTO order
     ) throws Exception {
+        logger.info("Request Started [WEBHOOK].");
         this.authenticate(authorizationHeader);
         var response = this.orderService.sendValidationEmail(order);
+        logger.info("Sending response.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     private void authenticate(String authorizationHeader) throws Exception {
-
         if (authorizationHeader != null) {
             var token = authorizationHeader.replace("Bearer", "").trim();
             if (!token.equals(this.env.getProperty("webhook.token"))) throw new Exception("Token is invalid!");
-            logger.error("Token inválido: " + token);
+            logger.error("Token is invalid: " + token);
             return;
         }
-        logger.error("Token não enviado");
+        logger.error("Token is missing!");
         throw new Exception("Token is missing!");
     }
 }
