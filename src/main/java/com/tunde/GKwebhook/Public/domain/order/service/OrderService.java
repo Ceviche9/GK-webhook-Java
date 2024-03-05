@@ -1,9 +1,6 @@
 package com.tunde.GKwebhook.Public.domain.order.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
-import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
-import com.tunde.GKwebhook.Public.domain.order.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.sentEmail.service.SentEmailService;
 import com.tunde.GKwebhook.Public.domain.order.dto.OrderDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
@@ -32,54 +29,8 @@ public class OrderService {
         return this.storeProvider.findOrderById(id);
     }
 
-    public SentEmailResponseDTO sendEmail(String id) throws Exception {
-        var order = this.storeProvider.findOrderById(id);
-        logger.info("Order found: " + order.numero());
-        var verifyOrderDTO = VerifyOrderDTO.fromOrderDTO(order);
-        logger.info("DTO created");
-        return this.sendValidationEmail(verifyOrderDTO);
-    }
 
-    public SentEmailResponseDTO sendValidationEmail(VerifyOrderDTO order) throws Exception {
-        this.verifyOrderStatus(order);
-        SentEmail sentEmail = null;
-        logger.info("Check if email already stored");
-        var emailAlreadySent = this.sentEmailService.findByEmail(order.cliente().email());
-        logger.info("emailAlreadySent is null: "+ (emailAlreadySent == null));
-        if (emailAlreadySent != null && !emailAlreadySent.getFailed()) {
-            logger.error("OrderId or Email already in the DB: OrderId: "+ order.numero() + ".Email: " + order.cliente().email());
-            throw new Exception("Já foi enviado um email para esse cliente ou esse pedido já está cadastrado no banco.");
-        }
-
-        try {
-            logger.info("Calling mail sender provider");
-            this.mailSenderProvider.sendEmail(order);
-            SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, false);
-            logger.info("Trying to store email info on DB");
-            System.out.println("Aqui");
-            if (emailAlreadySent == null) {
-                System.out.println("Dentro 1");
-                logger.info("Creating new email sent on DB");
-                sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
-            } else {
-                logger.info("Updating email status on DB");
-                this.sentEmailService.updateEmailStatus(emailAlreadySent.getId());
-                sentEmail = emailAlreadySent;
-                sentEmail.setFailed(false);
-            }
-
-            logger.info("Email stored in DB: " + sentEmail.getId());
-        } catch (Exception err) {
-            logger.info("Error while sent email");
-            SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, true);
-            sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
-            logger.error("Error saved in DB: " + sentEmail.getId());
-        }
-
-        return this.sentEmailService.createSentEmailResponseDTO(sentEmail);
-    }
-
-    private void verifyOrderStatus(VerifyOrderDTO order) throws Exception {
+     public void verifyOrderStatus(VerifyOrderDTO order) throws Exception {
         logger.info("Check order status");
         if (!order.pagamentos().isEmpty() && !"mercadopagov1".equals(order.pagamentos().get(0).forma_pagamento().codigo())) {
             logger.error("This order was not payed with credit card: "+ order.pagamentos().get(0).forma_pagamento().codigo());
