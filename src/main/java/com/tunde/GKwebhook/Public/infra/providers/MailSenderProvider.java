@@ -26,6 +26,7 @@ public class MailSenderProvider {
         HtmlEmail email = new HtmlEmail();
         email.setCharset("UTF-8");
         email.setHostName("email-ssl.com.br");
+        email.setSSLOnConnect(true);
         email.setSmtpPort(465);
         email.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
         email.setSSLOnConnect(true);
