@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class MailSenderProvider {
@@ -20,7 +21,7 @@ public class MailSenderProvider {
     @Autowired
     private Environment env;
 
-    public void sendEmail(VerifyOrderDTO order) throws Exception {
+    public CompletableFuture<Boolean> sendEmail(VerifyOrderDTO order) throws Exception {
         logger.info("Send email started");
         HtmlEmail email = new HtmlEmail();
         email.setCharset("UTF-8");
@@ -46,18 +47,22 @@ public class MailSenderProvider {
                 );
 
         logger.info("HtmlBody generated");
-        try {
-            email.setFrom(this.env.getProperty("my.email"));
-            email.setSubject("Verificação de Documentação PED: " + order.numero());
-            email.setHtmlMsg(htmlBody);
-            email.addTo("niinbus@gmail.com");
-            email.send();
-            logger.info("Email sent");
-
-        } catch (Exception err) {
-            err.printStackTrace();
-            throw new Exception("Error while trying to send email");
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                email.setFrom(this.env.getProperty("my.email"));
+                email.setSubject("Verificação de Documentação PED: " + order.numero());
+                email.setHtmlMsg(htmlBody);
+                email.addTo("niinbus@gmail.com");
+                logger.info("Calling email.send()");
+                email.send();
+                logger.info("Email sent");
+            } catch (Exception err) {
+                logger.error("Error while sent email");
+                logger.error(err.getMessage());
+                return false;
+            }
+            return true;
+        });
     }
 
     private String generateDocumentValidation(int order, List<String> products, String price, int installments, double installmentsValue, String name) {

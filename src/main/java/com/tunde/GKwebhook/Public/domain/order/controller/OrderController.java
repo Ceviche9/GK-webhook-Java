@@ -37,30 +37,6 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/send-email/{orderId}")
-    ResponseEntity<SentEmailResponseDTO> sendEmail(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable("orderId") String id
-    ) throws Exception {
-        logger.info("Request Started.");
-        this.authenticate(authorizationHeader);
-        var response = this.orderService.sendEmail(id);
-        logger.info("Sending response.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping("/webhook")
-    ResponseEntity<SentEmailResponseDTO> webhook(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody VerifyOrderDTO order
-    ) throws Exception {
-        logger.info("Request Started [WEBHOOK].");
-        this.authenticate(authorizationHeader);
-        var response = this.orderService.sendValidationEmail(order);
-        logger.info("Sending response.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
     private void authenticate(String authorizationHeader) throws Exception {
         if (authorizationHeader != null) {
             var token = authorizationHeader.replace("Bearer", "").trim();

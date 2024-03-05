@@ -39,7 +39,7 @@ public class SentEmail {
     public SentEmail(SentEmailDTO dto) {
         this.email = dto.email();
         this.failed = dto.failed();
-        this.method = dto.method();
+        this.method = dto.methodType();
         this.order_id = dto.orderId();
         this.setCurrentDate();
     }
