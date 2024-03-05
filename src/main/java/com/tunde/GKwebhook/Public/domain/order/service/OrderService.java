@@ -1,9 +1,7 @@
 package com.tunde.GKwebhook.Public.domain.order.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderPaymentDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
-import com.tunde.GKwebhook.Public.domain.order.entity.MethodType;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import com.tunde.GKwebhook.Public.domain.order.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.sentEmail.service.SentEmailService;
@@ -15,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class OrderService {
@@ -47,9 +43,10 @@ public class OrderService {
     public SentEmailResponseDTO sendValidationEmail(VerifyOrderDTO order) throws Exception {
         this.verifyOrderStatus(order);
         SentEmail sentEmail = null;
-        logger.info("Check if email or orderId is already stored");
-        Boolean alreadySent = this.sentEmailService.alreadySent(order.cliente().email(), String.valueOf(order.numero()));
-        if (alreadySent) {
+        logger.info("Check if email already stored");
+        var emailAlreadySent = this.sentEmailService.findByEmail(order.cliente().email());
+        logger.info("emailAlreadySent is null: "+ (emailAlreadySent == null));
+        if (emailAlreadySent != null && !emailAlreadySent.getFailed()) {
             logger.error("OrderId or Email already in the DB: OrderId: "+ order.numero() + ".Email: " + order.cliente().email());
             throw new Exception("Já foi enviado um email para esse cliente ou esse pedido já está cadastrado no banco.");
         }
@@ -58,8 +55,19 @@ public class OrderService {
             logger.info("Calling mail sender provider");
             this.mailSenderProvider.sendEmail(order);
             SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, false);
-            logger.info("Email sent");
-            sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
+            logger.info("Trying to store email info on DB");
+            System.out.println("Aqui");
+            if (emailAlreadySent == null) {
+                System.out.println("Dentro 1");
+                logger.info("Creating new email sent on DB");
+                sentEmail = this.sentEmailService.saveEmail(sentEmailDTO);
+            } else {
+                logger.info("Updating email status on DB");
+                this.sentEmailService.updateEmailStatus(emailAlreadySent.getId());
+                sentEmail = emailAlreadySent;
+                sentEmail.setFailed(false);
+            }
+
             logger.info("Email stored in DB: " + sentEmail.getId());
         } catch (Exception err) {
             logger.info("Error while sent email");

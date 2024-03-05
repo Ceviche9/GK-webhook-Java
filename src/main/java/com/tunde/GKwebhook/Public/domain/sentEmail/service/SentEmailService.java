@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SentEmailService {
@@ -25,12 +26,18 @@ public class SentEmailService {
         return this.repository.save(newSentEmail);
     }
 
-    public Boolean alreadySent(String email, String orderId) {
+    public SentEmail findByEmail(String email) {
         Optional<SentEmail> sentEmail = this.repository.findByEmail(email);
+        return sentEmail.orElse(null);
+    }
+
+    public Boolean orderAlreadySaved(String orderId) {
         Optional<SentEmail> sentEmailByOrder = this.repository.findByOrderId(orderId);
-        return sentEmail.isPresent() &&
-                !sentEmail.get().getFailed() ||
-                sentEmailByOrder.isPresent();
+        return sentEmailByOrder.isPresent();
+    }
+
+    public void updateEmailStatus(UUID id) {
+        this.repository.updateStatusById(false, id);
     }
 
     public FindAllSentEmailResponseDTO findAll() {

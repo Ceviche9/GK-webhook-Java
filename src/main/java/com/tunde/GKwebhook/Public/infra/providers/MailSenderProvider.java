@@ -2,7 +2,10 @@ package com.tunde.GKwebhook.Public.infra.providers;
 
 import com.tunde.GKwebhook.Public.domain.order.dto.ProductDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.service.OrderService;
 import org.apache.commons.mail.HtmlEmail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -12,11 +15,13 @@ import java.util.List;
 
 @Component
 public class MailSenderProvider {
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+
     @Autowired
     private Environment env;
 
-
     public void sendEmail(VerifyOrderDTO order) throws Exception {
+        logger.info("Send email started");
         HtmlEmail email = new HtmlEmail();
         email.setCharset("UTF-8");
         email.setHostName("email-ssl.com.br");
@@ -30,6 +35,7 @@ public class MailSenderProvider {
             productNames.add(item.nome());
         }
 
+        logger.info("Generate htmlBody");
         String htmlBody = this.generateDocumentValidation(
                 order.numero(),
                 productNames,
@@ -39,12 +45,14 @@ public class MailSenderProvider {
                 order.cliente().nome()
                 );
 
+        logger.info("HtmlBody generated");
         try {
             email.setFrom(this.env.getProperty("my.email"));
             email.setSubject("Verificação de Documentação PED: " + order.numero());
             email.setHtmlMsg(htmlBody);
             email.addTo("niinbus@gmail.com");
             email.send();
+            logger.info("Email sent");
 
         } catch (Exception err) {
             err.printStackTrace();
