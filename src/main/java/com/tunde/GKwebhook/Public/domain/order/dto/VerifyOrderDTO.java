@@ -9,4 +9,21 @@ public record VerifyOrderDTO(
         StatusDTO situacao,
         List<VerifyOrderPaymentDTO>  pagamentos
 ) {
+
+    public static VerifyOrderDTO fromOrderDTO(OrderDTO dto) {
+        var verifyOrderPaymentDTO = new VerifyOrderPaymentDTO(
+                dto.pagamentos().get(0).id(),
+                dto.pagamentos().get(0).parcelamento().numero_parcelas(),
+                dto.pagamentos().get(0).parcelamento().valor_parcela(),
+                dto.pagamentos().get(0).valor(),
+                dto.pagamentos().get(0).forma_pagamento()
+        );
+        return new VerifyOrderDTO(
+                dto.cliente(),
+                dto.itens(),
+                dto.numero(),
+                dto.situacao(),
+                List.of(verifyOrderPaymentDTO)
+        );
+    }
 }

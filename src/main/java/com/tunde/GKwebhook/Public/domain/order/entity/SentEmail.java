@@ -1,4 +1,4 @@
-package com.tunde.GKwebhook.Public.domain.sentEmail.entity;
+package com.tunde.GKwebhook.Public.domain.order.entity;
 
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import jakarta.persistence.*;
@@ -46,8 +46,7 @@ public class SentEmail {
 
     private void setCurrentDate() {
         ZoneId zonaBrasilia = ZoneId.of("America/Sao_Paulo");
-        ZonedDateTime sendedAt = ZonedDateTime.now(zonaBrasilia);
-        this.sended_at = sendedAt;
+        this.sended_at = ZonedDateTime.now(zonaBrasilia);
     }
 
 }

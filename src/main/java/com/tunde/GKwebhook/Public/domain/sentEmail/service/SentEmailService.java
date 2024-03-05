@@ -3,7 +3,7 @@ package com.tunde.GKwebhook.Public.domain.sentEmail.service;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.FindAllSentEmailResponseDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailDTO;
 import com.tunde.GKwebhook.Public.domain.sentEmail.dto.SentEmailResponseDTO;
-import com.tunde.GKwebhook.Public.domain.sentEmail.entity.SentEmail;
+import com.tunde.GKwebhook.Public.domain.order.entity.SentEmail;
 import com.tunde.GKwebhook.Public.domain.sentEmail.repository.SentEmailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SentEmailService {
@@ -25,16 +26,18 @@ public class SentEmailService {
         return this.repository.save(newSentEmail);
     }
 
-    public Boolean alreadySent(String email, String orderId) {
+    public SentEmail findByEmail(String email) {
         Optional<SentEmail> sentEmail = this.repository.findByEmail(email);
+        return sentEmail.orElse(null);
+    }
+
+    public Boolean orderAlreadySaved(String orderId) {
         Optional<SentEmail> sentEmailByOrder = this.repository.findByOrderId(orderId);
-        if (
-                sentEmail.isPresent() &&
-                !sentEmail.get().getFailed() ||
-                sentEmailByOrder.isPresent()
-        ) {
-            return true;
-        } else return false;
+        return sentEmailByOrder.isPresent();
+    }
+
+    public void updateEmailStatus(UUID id) {
+        this.repository.updateStatusById(false, id);
     }
 
     public FindAllSentEmailResponseDTO findAll() {
@@ -45,12 +48,10 @@ public class SentEmailService {
             responseArray.add(this.createSentEmailResponseDTO(email));
         }
 
-        FindAllSentEmailResponseDTO response = new FindAllSentEmailResponseDTO(
+        return new FindAllSentEmailResponseDTO(
                 responseArray,
                 responseArray.size()
         );
-
-        return response;
     }
 
     public SentEmailResponseDTO createSentEmailResponseDTO(SentEmail email) {
