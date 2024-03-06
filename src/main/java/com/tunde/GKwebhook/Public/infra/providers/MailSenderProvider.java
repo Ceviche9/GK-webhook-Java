@@ -2,6 +2,7 @@ package com.tunde.GKwebhook.Public.infra.providers;
 
 import com.tunde.GKwebhook.Public.domain.order.dto.ProductDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
+import com.tunde.GKwebhook.Public.domain.order.entity.MethodType;
 import com.tunde.GKwebhook.Public.domain.order.service.OrderService;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -46,6 +47,8 @@ public class MailSenderProvider {
             logger.info("Generating email sender");
             var emailSender = this.generateEmailSender();
             logger.info("Setting email properties");
+            logger.info(String.valueOf(order.pagamentos().get(0)));
+            logger.info(order.methodType().toString());
             this.setEmailSenderProperties(
                     emailSender,
                     this.generateDocumentValidation(
@@ -53,7 +56,7 @@ public class MailSenderProvider {
                             productNames,
                             order.pagamentos().get(0).valor(),
                             order.pagamentos().get(0).numero_parcelas(),
-                            order.pagamentos().get(0).numero_parcelas() == 0 ?
+                            order.methodType().equals(MethodType.webhook) ?
                                     Double.parseDouble(order.pagamentos().get(0).valor()) :
                                     order.pagamentos().get(0).valor_parcela()
                             ,
@@ -109,7 +112,8 @@ public class MailSenderProvider {
             displayedValue = Double.parseDouble(price);
         } else {
             installmentsText = "parcelado "+ installments + "x de";
-            displayedValue = installmentsValue;
+            displayedValue = installments * installmentsValue;
+            logger.info("Installments value: "+ displayedValue);
         }
 
         return "<!doctype html>\n" +

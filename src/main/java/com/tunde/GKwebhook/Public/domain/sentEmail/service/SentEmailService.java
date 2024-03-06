@@ -79,7 +79,12 @@ public class SentEmailService {
     }
 
     public SentEmailResponseDTO sendValidationEmail(VerifyOrderDTO order) throws Exception {
-        if (order.methodType() != MethodType.manually) this.verifyEmailFields(order);
+        if (order.methodType() != MethodType.manually) {
+            order = VerifyOrderDTO.setMethodType(order, MethodType.webhook);
+            this.verifyEmailFields(order);
+
+        };
+        logger.info(order.methodType().toString());
         this.orderService.verifyOrderStatus(order);
 
         logger.info("Check if email already stored");
@@ -95,7 +100,7 @@ public class SentEmailService {
         return this.createSentEmailResponseDTO(sentEmail);
     }
     private SentEmail sendEmailAndUpdateDb(VerifyOrderDTO order) {
-        SentEmail sentEmail = null;
+        var sentEmail = new SentEmail();
         AtomicReference<Boolean> emailSent = new AtomicReference<>(false);
 
         try {
@@ -112,7 +117,11 @@ public class SentEmailService {
         } catch (Exception err) {
             logger.error("An error occurred while sending or storing the email");
             logger.error(err.getMessage());
-
+            if (err.getMessage().equals("Sending the email to the following server failed : email-ssl.com.br:465")) {
+                logger.info("This error was from the sendEmail lib");
+                return sentEmail;
+            }
+            logger.info("This error was not from the SendEmail lib ");
             SentEmailDTO sentEmailDTO = SentEmailDTO.fromVerifyDTO(order, !emailSent.get());
             sentEmail = this.saveEmail(sentEmailDTO);
             logger.error("Error saved in DB: " + sentEmail.getId());
@@ -136,6 +145,7 @@ public class SentEmailService {
             throw new Exception("This order does not have any item.");
         }
     }
+
     public SentEmailResponseDTO createSentEmailResponseDTO(SentEmail email) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return  new SentEmailResponseDTO(

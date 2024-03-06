@@ -11,7 +11,7 @@ public record VerifyOrderDTO(
         int numero,
         StatusDTO situacao,
         List<VerifyOrderPaymentDTO>  pagamentos,
-       MethodType methodType
+        MethodType methodType
 ) {
     public static VerifyOrderDTO fromOrderDTO(OrderDTO dto, Optional<MethodType> methodType) {
         var verifyOrderPaymentDTO = new VerifyOrderPaymentDTO(
@@ -30,4 +30,16 @@ public record VerifyOrderDTO(
                 methodType.orElse(MethodType.webhook)
         );
     }
+
+    public static VerifyOrderDTO setMethodType(VerifyOrderDTO dto,MethodType methodType) {
+        return new VerifyOrderDTO(
+                dto.cliente(),
+                dto.itens(),
+                dto.numero(),
+                dto.situacao(),
+                dto.pagamentos(),
+                methodType
+        );
+    }
+
 }
