@@ -112,7 +112,8 @@ public class MailSenderProvider {
             displayedValue = Double.parseDouble(price);
         } else {
             installmentsText = "parcelado "+ installments + "x de";
-            displayedValue = installments * installmentsValue;
+            displayedValue = installmentsValue;
+            price = String.valueOf(installments * installmentsValue);
             logger.info("Installments value: "+ displayedValue);
         }
 
