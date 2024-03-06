@@ -54,7 +54,7 @@ public class MailSenderProvider {
                             order.pagamentos().get(0).valor(),
                             order.pagamentos().get(0).numero_parcelas(),
                             order.pagamentos().get(0).numero_parcelas() == 0 ?
-                                    0 :
+                                    Double.parseDouble(order.pagamentos().get(0).valor()) :
                                     order.pagamentos().get(0).valor_parcela()
                             ,
                             order.cliente().nome()
