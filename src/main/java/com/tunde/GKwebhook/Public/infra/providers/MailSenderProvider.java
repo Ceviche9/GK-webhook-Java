@@ -3,6 +3,7 @@ package com.tunde.GKwebhook.Public.infra.providers;
 import com.tunde.GKwebhook.Public.domain.order.dto.ProductDTO;
 import com.tunde.GKwebhook.Public.domain.order.dto.VerifyOrderDTO;
 import com.tunde.GKwebhook.Public.domain.order.service.OrderService;
+import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,24 +13,27 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class MailSenderProvider {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private HtmlEmail emailSender;
 
     @Autowired
     private Environment env;
 
-    public CompletableFuture<Boolean> sendEmail(VerifyOrderDTO order) throws Exception {
+    public MailSenderProvider() {
+        this.emailSender = new HtmlEmail();
+        emailSender.setCharset("UTF-8");
+        emailSender.setHostName("email-ssl.com.br");
+        emailSender.setSSLOnConnect(true);
+        emailSender.setSmtpPort(465);
+        emailSender.setSSLOnConnect(true);
+    }
+
+    public Boolean sendEmail(VerifyOrderDTO order) throws Exception {
         logger.info("Send email started");
-        HtmlEmail email = new HtmlEmail();
-        email.setCharset("UTF-8");
-        email.setHostName("email-ssl.com.br");
-        email.setSSLOnConnect(true);
-        email.setSmtpPort(465);
-        email.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
-        email.setSSLOnConnect(true);
+        this.emailSender.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
 
         List<String> productNames = new ArrayList<>();
 
@@ -37,33 +41,53 @@ public class MailSenderProvider {
             productNames.add(item.nome());
         }
 
-        logger.info("Generate htmlBody");
-        String htmlBody = this.generateDocumentValidation(
-                order.numero(),
-                productNames,
-                order.pagamentos().get(0).valor(),
-                order.pagamentos().get(0).numero_parcelas(),
-                order.pagamentos().get(0).valor_parcela(),
-                order.cliente().nome()
-                );
 
-        logger.info("HtmlBody generated");
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                email.setFrom(this.env.getProperty("my.email"));
-                email.setSubject("Verificação de Documentação PED: " + order.numero());
-                email.setHtmlMsg(htmlBody);
-                email.addTo(order.cliente().email());
-                logger.info("Calling email.send()");
-                email.send();
-                logger.info("Email sent");
-            } catch (Exception err) {
-                logger.error("Error while sent email");
-                logger.error(err.getMessage());
-                return false;
-            }
-            return true;
-        });
+        try {
+            logger.info("Setting email properties");
+            this.setEmailSenderProperties(
+                    this.generateDocumentValidation(
+                            order.numero(),
+                            productNames,
+                            order.pagamentos().get(0).valor(),
+                            order.pagamentos().get(0).numero_parcelas(),
+                            order.pagamentos().get(0).valor_parcela(),
+                            order.cliente().nome()
+                    ),
+                    order.cliente().email(),
+                    "Verificação de Documentação PED: " + order.numero()
+            );
+            logger.info("Calling email.send()");
+            this.emailSender.send();
+            logger.info("Email sent");
+        } catch (Exception err) {
+            logger.error("Error while sent email");
+            logger.error(err.getMessage());
+            logger.info("Setting error email properties");
+            this.setEmailSenderProperties(
+                    this.generateErrorDocument(
+                            order.numero(),
+                            order.cliente().nome(),
+                            order.cliente().email()
+                    ),
+                    this.env.getProperty("error.email"),
+                    "Erro ao enviar verificação de Documentação PED: " + order.numero()
+            );
+            logger.info("Calling error email.send()");
+            this.emailSender.send();
+            logger.info("Error email sent");
+            return false;
+        }
+        return true;
+    }
+
+    private void setEmailSenderProperties(
+            String htmlBody,
+            String to,
+            String subject) throws EmailException {
+        this.emailSender.setFrom(this.env.getProperty("my.email"));
+        this.emailSender.setSubject(subject);
+        this.emailSender.setHtmlMsg(htmlBody);
+        this.emailSender.addTo(to);
     }
 
     private String generateDocumentValidation(int order, List<String> products, String price, int installments, double installmentsValue, String name) {
@@ -138,6 +162,54 @@ public class MailSenderProvider {
                 "          Caso já tenha enviado a documentação por favor desconsiderar esse email.\n" +
                 "      </P>\n" +
                 "      <p>Att Equipe GK INFO STORE</p>\n" +
+                "    </div>\n" +
+                "    <img src=\"https://imgur.com/gXdgnn4.png\" alt=\"Assinatura\">\n" +
+                "  </body>\n" +
+                "</html>\n";
+    }
+
+    private String generateErrorDocument(int order, String name, String email) {
+        return "<!doctype html>\n" +
+                "<html lang=\"pt-BR\">\n" +
+                "  <head>\n" +
+                "    <meta charset=\"UTF-8\" />\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n" +
+                "    <title>Email de Contato</title>\n" +
+                "    <style>\n" +
+                "      body {\n" +
+                "        font-family: Arial, sans-serif;\n" +
+                "        line-height: 1.6;\n" +
+                "      }\n" +
+                "      .container {\n" +
+                "        max-width: 600px;\n" +
+                "        margin: 0 auto;\n" +
+                "        padding: 20px;\n" +
+                "        background-color: #f9f9f9;\n" +
+                "        border: 1px solid #ddd;\n" +
+                "        border-radius: 5px;\n" +
+                "      }\n" +
+                "      p {\n" +
+                "        margin-bottom: 10px;\n" +
+                "      }    \n" +
+                "      img {\n" +
+                "        width: 40%; /* Faça a imagem ocupar 100% da largura da div */\n" +
+                "        height: auto;\n" +
+                "        display: block;\n" +
+                "        margin-top: 20px;\n" +
+                "        margin-left: auto; /* Centraliza a imagem horizontalmente */\n" +
+                "        margin-right: auto; /* Centraliza a imagem horizontalmente */\n" +
+                "      }\n" +
+                "    </style>\n" +
+                "  </head>\n" +
+                "  <body>\n" +
+                "    <div class=\"container\">\n" +
+                "      <p>\n" +
+                "        Houve um erro ao tentar enviar o email de validação para o usuário: (a) <strong>" + name + "</strong>,\n" +
+                "        Com o email: <strong>" + email + "</strong>. \n" +
+                "        Utilize a rota manual de envio de email: <strong> https://gk-webhook-java-production.up.railway.app/emails/"+ order +"</strong>. \n" +
+                "        Lembre-se que é preciso passar a chave de API para utilizar a rota, qualquer dúvida entrar em contato com:\n" +
+                "        <strong>ayotunde_sales@hotmail.com.</strong>\n" +
+                "      </p>\n" +
                 "    </div>\n" +
                 "    <img src=\"https://imgur.com/gXdgnn4.png\" alt=\"Assinatura\">\n" +
                 "  </body>\n" +
