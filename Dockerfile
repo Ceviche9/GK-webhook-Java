@@ -11,6 +11,6 @@ FROM openjdk:17-jdk-slim
 
 EXPOSE 8080
 
-COPY --from=build \target\GK-webhook-Public-0.0.1-SNAPSHOT.jar.original
+COPY --from=build \target\GK-webhook-Public-0.0.1-SNAPSHOT.jar.original app.jar
 
 ENTRYPOINT [ "java", "-jar", "app.jar" ]
