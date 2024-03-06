@@ -123,14 +123,9 @@ public class SentEmailService {
 
     public void verifyEmailFields(VerifyOrderDTO order) throws Exception {
         if(
-                order.pagamentos() == null ||
-                order.pagamentos().get(0).valor_parcela() == null ||
-                order.pagamentos().get(0).forma_pagamento() == null ||
-                order.pagamentos().get(0).valor() == null
+                order.pagamentos() == null
         ) {
             logger.error("This order does not have all the payments fields, orderId: " + order.numero());
-            assert order.pagamentos() != null;
-            logger.info(order.pagamentos().toString());
             throw new Exception("This order does not have all the payments fields.");
         }
 

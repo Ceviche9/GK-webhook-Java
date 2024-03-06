@@ -17,23 +17,23 @@ import java.util.List;
 @Component
 public class MailSenderProvider {
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
-    private HtmlEmail emailSender;
 
     @Autowired
     private Environment env;
 
-    public MailSenderProvider() {
-        this.emailSender = new HtmlEmail();
+    private HtmlEmail generateEmailSender() {
+        var emailSender = new HtmlEmail();
         emailSender.setCharset("UTF-8");
         emailSender.setHostName("email-ssl.com.br");
         emailSender.setSSLOnConnect(true);
         emailSender.setSmtpPort(465);
         emailSender.setSSLOnConnect(true);
+        emailSender.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
+        return emailSender;
     }
 
     public Boolean sendEmail(VerifyOrderDTO order) throws Exception {
         logger.info("Send email started");
-        this.emailSender.setAuthentication(this.env.getProperty("my.email"), this.env.getProperty("my.password"));
 
         List<String> productNames = new ArrayList<>();
 
@@ -43,27 +43,36 @@ public class MailSenderProvider {
 
 
         try {
+            logger.info("Generating email sender");
+            var emailSender = this.generateEmailSender();
             logger.info("Setting email properties");
             this.setEmailSenderProperties(
+                    emailSender,
                     this.generateDocumentValidation(
                             order.numero(),
                             productNames,
                             order.pagamentos().get(0).valor(),
                             order.pagamentos().get(0).numero_parcelas(),
-                            order.pagamentos().get(0).valor_parcela(),
+                            order.pagamentos().get(0).numero_parcelas() == 0 ?
+                                    0 :
+                                    order.pagamentos().get(0).valor_parcela()
+                            ,
                             order.cliente().nome()
                     ),
                     order.cliente().email(),
                     "Verificação de Documentação PED: " + order.numero()
             );
             logger.info("Calling email.send()");
-            this.emailSender.send();
+            emailSender.send();
             logger.info("Email sent");
         } catch (Exception err) {
             logger.error("Error while sent email");
             logger.error(err.getMessage());
+            logger.info("Generating email sender");
+            var emailSender = this.generateEmailSender();
             logger.info("Setting error email properties");
             this.setEmailSenderProperties(
+                    emailSender,
                     this.generateErrorDocument(
                             order.numero(),
                             order.cliente().nome(),
@@ -73,7 +82,7 @@ public class MailSenderProvider {
                     "Erro ao enviar verificação de Documentação PED: " + order.numero()
             );
             logger.info("Calling error email.send()");
-            this.emailSender.send();
+            emailSender.send();
             logger.info("Error email sent");
             return false;
         }
@@ -81,16 +90,28 @@ public class MailSenderProvider {
     }
 
     private void setEmailSenderProperties(
+            HtmlEmail emailSender,
             String htmlBody,
             String to,
             String subject) throws EmailException {
-        this.emailSender.setFrom(this.env.getProperty("my.email"));
-        this.emailSender.setSubject(subject);
-        this.emailSender.setHtmlMsg(htmlBody);
-        this.emailSender.addTo(to);
+        emailSender.setFrom(this.env.getProperty("my.email"));
+        emailSender.setSubject(subject);
+        emailSender.setHtmlMsg(htmlBody);
+        emailSender.addTo(to);
     }
 
     private String generateDocumentValidation(int order, List<String> products, String price, int installments, double installmentsValue, String name) {
+        String installmentsText;
+        double displayedValue;
+
+        if (installments == 0) {
+            installmentsText = "comprado à vista por";
+            displayedValue = Double.parseDouble(price);
+        } else {
+            installmentsText = "parcelado "+ installments + "x de";
+            displayedValue = installmentsValue;
+        }
+
         return "<!doctype html>\n" +
                 "<html lang=\"pt-BR\">\n" +
                 "  <head>\n" +
@@ -129,7 +150,7 @@ public class MailSenderProvider {
                 "        Prezado(a) <strong>" + name + "</strong>, tudo bem? Estamos entrando em \n" +
                 "        contato em razão do pedido de número: <strong>" + order + "</strong>, \n" +
                 "        onde consta o produto: <strong>" + String.join(", ", products) + "</strong>, \n" +
-                "        parcelado em <strong>" + installments + "x</strong> de <strong>R$ " + installmentsValue + "</strong>, \n" +
+                "        " + installmentsText + " <strong>R$ " + String.format("%.2f", displayedValue) + "</strong>, \n" +
                 "        totalizando <strong>R$ " + price + "</strong>. \n" +
                 "        Ressaltamos que adotamos novas práticas de segurança para a primeira compra via cartão de crédito, \n" +
                 "        iremos prosseguir com os procedimentos de emissão da nota fiscal e envio, assim que os documentos seguintes forem confirmados, \n" +
