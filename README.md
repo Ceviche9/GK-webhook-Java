@@ -4,11 +4,43 @@
 This project is a Java-based API designed to integrate an anti-fraud system for credit card purchases within an e-commerce platform. The API offers endpoints to interact with the anti-fraud service, enabling the e-commerce platform to conduct fraud checks on incoming orders. Additionally, the API facilitates sending emails to buyers to validate certain information. The API also includes specific endpoints for handling webhook calls from the e-commerce platform and managing emails sent to buyers.
 
 ## Features
+The webhook route has several features, including:
+- Check if the data sent by the webhook has all the necessary fields; these are the fields that have previously caused errors for being empty.
+```java
+    public void verifyEmailFields(VerifyOrderDTO order) throws Exception {
+        if(
+                order.pagamentos() == null ||
+                order.pagamentos().get(0).valor_parcela() == null ||
+                order.pagamentos().get(0).forma_pagamento() == null ||
+                order.pagamentos().get(0).valor() == null
+        ) {
+            logger.error("This order does not have all the payments fields");
+            throw new Exception("This order does not have all the payments fields.");
+        }
 
--   Integration with an anti-fraud system for credit card purchases.
--   Enables sending emails to buyers for validating information.
--   Supports webhook integration for automatic communication with the e-commerce platform.
--   Allows retrieval of all sent emails and sending emails by order ID.
+        if(
+                order.itens() == null
+        ) {
+            logger.error("This order does not have any item.");
+            throw new Exception("This order does not have any item.");
+        }
+    }
+```
+- Check if the payment was made by card and if it's approved.
+```java
+     public void verifyOrderStatus(VerifyOrderDTO order) throws Exception {
+        logger.info("Check order status");
+        if (!order.pagamentos().isEmpty() && !"mercadopagov1".equals(order.pagamentos().get(0).forma_pagamento().codigo())) {
+            logger.error("This order was not payed with credit card: "+ order.pagamentos().get(0).forma_pagamento().codigo());
+            throw new Exception("Esse pedido não não foi pago no cartão.");
+        }
+
+        if (!order.situacao().aprovado()) {
+            logger.error("Order not approved: "+ order.numero());
+            throw new Exception("Esse pedido ainda não foi aprovado!");
+        }
+    }
+```
 
 ## Requirements
 
