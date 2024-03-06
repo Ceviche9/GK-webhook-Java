@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -80,6 +79,7 @@ public class SentEmailService {
     }
 
     public SentEmailResponseDTO sendValidationEmail(VerifyOrderDTO order) throws Exception {
+        if (order.methodType() != MethodType.manually) this.verifyEmailFields(order);
         this.orderService.verifyOrderStatus(order);
 
         logger.info("Check if email already stored");
@@ -100,12 +100,8 @@ public class SentEmailService {
 
         try {
             logger.info("Calling mail sender provider");
-            CompletableFuture<Boolean> futureEmailSentResponse = this.mailSenderProvider.sendEmail(order);
-
-            futureEmailSentResponse.thenAccept(emailSent::set);
-
-            logger.info("Waiting for email response");
-            futureEmailSentResponse.join();
+            Boolean emailSentResponse = this.mailSenderProvider.sendEmail(order);
+            emailSent.set(emailSentResponse);
             logger.info("Email was sent: " + emailSent.get());
 
             logger.info("Creating new email sent on DB");
@@ -125,7 +121,24 @@ public class SentEmailService {
         return sentEmail;
     }
 
+    public void verifyEmailFields(VerifyOrderDTO order) throws Exception {
+        if(
+                order.pagamentos() == null ||
+                order.pagamentos().get(0).valor_parcela() == null ||
+                order.pagamentos().get(0).forma_pagamento() == null ||
+                order.pagamentos().get(0).valor() == null
+        ) {
+            logger.error("This order does not have all the payments fields");
+            throw new Exception("This order does not have all the payments fields.");
+        }
 
+        if(
+                order.itens() == null
+        ) {
+            logger.error("This order does not have any item.");
+            throw new Exception("This order does not have any item.");
+        }
+    }
     public SentEmailResponseDTO createSentEmailResponseDTO(SentEmail email) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return  new SentEmailResponseDTO(
