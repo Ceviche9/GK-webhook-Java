@@ -128,7 +128,9 @@ public class SentEmailService {
                 order.pagamentos().get(0).forma_pagamento() == null ||
                 order.pagamentos().get(0).valor() == null
         ) {
-            logger.error("This order does not have all the payments fields");
+            logger.error("This order does not have all the payments fields, orderId: " + order.numero());
+            assert order.pagamentos() != null;
+            logger.info(order.pagamentos().toString());
             throw new Exception("This order does not have all the payments fields.");
         }
 
