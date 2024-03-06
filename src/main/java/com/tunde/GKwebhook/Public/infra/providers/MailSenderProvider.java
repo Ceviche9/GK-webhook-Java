@@ -53,7 +53,7 @@ public class MailSenderProvider {
                 email.setFrom(this.env.getProperty("my.email"));
                 email.setSubject("Verificação de Documentação PED: " + order.numero());
                 email.setHtmlMsg(htmlBody);
-                email.addTo("niinbus@gmail.com");
+                email.addTo(order.cliente().email());
                 logger.info("Calling email.send()");
                 email.send();
                 logger.info("Email sent");
